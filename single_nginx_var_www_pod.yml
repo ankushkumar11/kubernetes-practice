@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: default-conf
+data:
+  default.conf: |
+    server {
+      listen       8090;
+      server_name  localhost;
+
+      #charset koi8-r;
+      #access_log  /var/log/nginx/host.access.log  main;
+
+      location / {
+          root   /var/www;
+          index  index.html index.htm;
+      }
+
+      #error_page  404              /404.html;
+
+      # redirect server error pages to the static page /50x.html
+      #
+      error_page   500 502 503 504  /50x.html;
+      location = /50x.html {
+          root   /usr/share/nginx/html;
+      }
+
+      # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+      #
+      #location ~ \.php$ {
+      #    proxy_pass   http://127.0.0.1;
+      #}
+
+      # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+      #
+      #location ~ \.php$ {
+      #    root           html;
+      #    fastcgi_pass   127.0.0.1:9000;
+      #    fastcgi_index  index.php;
+      #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+      #    include        fastcgi_params;
+      #}
+
+      # deny access to .htaccess files, if Apache's document root
+      # concurs with nginx's one
+      #
+      #location ~ /\.ht {
+      #    deny  all;
+      #}
+    }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-demo
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.16.1
+    ports:
+    - containerPort: 8090
+    volumeMounts:
+    - mountPath: /etc/nginx/conf.d
+      readOnly: true
+      name: default-conf
+    - name: workdir
+      mountPath: /var/www
+  # These containers are run during pod initialization
+  initContainers:
+  - name: install
+    image: busybox
+    command:
+    - wget
+    - "-O"
+    - "/work-dir/index.html"
+    - https://ankushkumar11.github.io/kubernetes-practice
+    volumeMounts:
+    - name: workdir
+      mountPath: "/work-dir"
+  dnsPolicy: Default
+  volumes:
+  - name: workdir
+    emptyDir: {}
+  - name: default-conf
+    configMap:
+      name: default-conf
+      items:
+        - key: default.conf
+          path: default.conf
