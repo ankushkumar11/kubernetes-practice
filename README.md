@@ -9,6 +9,17 @@ $ kubectl apply -f nginx_var_www_deployment.yml
 ```
 
 
+Create a deployment running flask and expose to port 80
+
+```sh
+$ kubectl apply -f flask_deployment.yml
+```
+
+Create a Nginx ingress for Flask
+
+```sh
+$ kubectl apply -f flask_ingress.yml
+```
 
 #### Kubernetes
 
